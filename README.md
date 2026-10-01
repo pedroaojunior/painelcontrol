@@ -4,6 +4,27 @@ Um painel de controle web moderno, rápido e responsivo projetado para acionar a
 
 ---
 
+## ⚙️ Configuração Automática do Webhook (`config.js` / `config.json`)
+
+Para que a aplicação carregue o link do webhook do seu n8n automaticamente ao abrir a página (sem precisar digitar na tela), edite o arquivo **`config.js`**:
+
+```javascript
+window.N8N_CONFIG = {
+  WEBHOOK_URL: "https://seu-n8n.com/webhook/controle-alexa"
+};
+```
+
+> 💡 **Nota:** Substitua `"https://seu-n8n.com/webhook/controle-alexa"` pela URL real do seu webhook do n8n.
+> 
+> Você também pode optar por usar o arquivo **`config.json`** com o mesmo valor:
+> ```json
+> {
+>   "WEBHOOK_URL": "https://seu-n8n.com/webhook/controle-alexa"
+> }
+> ```
+
+---
+
 ## 📱 Botões e Ações Mapeadas no n8n
 
 O painel foi adaptado para se comunicar exatamente com a estrutura do fluxo de trabalho JSON fornecido:
@@ -24,23 +45,16 @@ O painel foi adaptado para se comunicar exatamente com a estrutura do fluxo de t
 1. Crie um novo repositório no seu **GitHub** (ex: `painel-n8n`).
 2. Envie os arquivos do projeto para o repositório:
    - `index.html`
+   - `config.js`
+   - `config.json`
    - `style.css`
    - `script.js`
 3. No GitHub, acesse **Settings** > **Pages**.
 4. Em **Branch**, selecione `main` (ou `master`) e clique em **Save**.
-5. Em alguns instantes, o seu painel estará online no link fornecido pelo GitHub (ex: `https://seu-usuario.github.io/painel-n8n/`).
-
----
-
-## ⚙️ Configuração da URL do n8n
-
-1. Ao abrir o painel pela primeira vez no celular ou computador, clique no ícone de **Engrenagem ⚙️** no canto superior direito.
-2. Cole a URL de produção do seu webhook do n8n (exemplo: `https://seu-n8n.com/webhook/controle-alexa`).
-3. Clique em **Salvar URL**. 
-4. A URL fica salva no navegador (`localStorage`), portanto não é necessário configurá-la novamente ao fechar a página.
+5. O seu painel lerá a URL configurada no `config.js` e estará pronto para usar!
 
 ---
 
 ## 🏠 Testando Localmente
 
-Para rodar localmente no seu computador, basta abrir o arquivo `index.html` em qualquer navegador ou utilizar uma extensão como o *Live Server* do VS Code.
+Basta abrir o arquivo `index.html` no seu navegador ou rodar com o *Live Server* do VS Code.

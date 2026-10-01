@@ -2,11 +2,11 @@
  * Painel de Controle de Automação Residencial (n8n Webhook)
  */
 
-document.addEventListener('DOMContentLoaded', () => {
-  // Key storage for n8n Webhook URL
+document.addEventListener('DOMContentLoaded', async () => {
+  // Chave do localStorage para override via interface
   const STORAGE_KEY_WEBHOOK = 'n8n_webhook_url';
   
-  // Element References
+  // Elementos do DOM
   const statusBadge = document.getElementById('statusBadge');
   const statusText = document.getElementById('statusText');
   const openSettingsBtn = document.getElementById('openSettingsBtn');
@@ -18,11 +18,33 @@ document.addEventListener('DOMContentLoaded', () => {
   const toastContainer = document.getElementById('toastContainer');
   const actionButtons = document.querySelectorAll('.card-actions button');
 
-  // Load saved Webhook URL or set initial default
-  let webhookUrl = localStorage.getItem(STORAGE_KEY_WEBHOOK) || '';
+  // 1. Tenta carregar a URL do localStorage (override da UI)
+  // 2. Se não houver override, tenta carregar do config.js (window.N8N_CONFIG.WEBHOOK_URL)
+  let webhookUrl = localStorage.getItem(STORAGE_KEY_WEBHOOK) || window.N8N_CONFIG?.WEBHOOK_URL || '';
+
+  // Função para buscar o config.json caso a URL ainda seja o valor de exemplo ou vazia
+  async function loadConfigFromFile() {
+    if (!webhookUrl || webhookUrl.includes('seu-n8n.com')) {
+      try {
+        const res = await fetch('config.json');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.WEBHOOK_URL && !data.WEBHOOK_URL.includes('seu-n8n.com')) {
+            webhookUrl = data.WEBHOOK_URL;
+          }
+        }
+      } catch (err) {
+        // Arquivo config.json não encontrado ou sem acesso, segue o fluxo normal
+      }
+    }
+  }
+
+  function isUrlValid(url) {
+    return url && !url.includes('seu-n8n.com') && (url.startsWith('http://') || url.startsWith('https://'));
+  }
 
   function updateStatusIndicator() {
-    if (!webhookUrl) {
+    if (!isUrlValid(webhookUrl)) {
       statusBadge.className = 'status-badge unconfigured';
       statusText.textContent = 'Configurar Webhook';
     } else {
@@ -31,16 +53,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Initial status check
+  // Inicializa a leitura da configuração do arquivo
+  await loadConfigFromFile();
   updateStatusIndicator();
 
-  // Show Modal Settings
+  // Abrir modal de configurações
   openSettingsBtn.addEventListener('click', () => {
     webhookUrlInput.value = webhookUrl;
     settingsModal.showModal();
   });
 
-  // Close Modal
+  // Fechar modal
   function closeModal() {
     settingsModal.close();
   }
@@ -48,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
   closeSettingsBtn.addEventListener('click', closeModal);
   cancelSettingsBtn.addEventListener('click', closeModal);
 
-  // Save Settings Form
+  // Salvar formulário de configurações
   settingsForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const newUrl = webhookUrlInput.value.trim();
@@ -61,18 +84,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Haptic Feedback for Mobile Devices
+  // Resposta tátil (Vibração) em celulares
   function triggerHaptic() {
     if ('vibrate' in navigator) {
       try {
         navigator.vibrate(40);
       } catch (e) {
-        // Ignore if restricted by policy
+        // Ignora caso restrito pelas políticas do navegador
       }
     }
   }
 
-  // Toast Notification System
+  // Notificações em Toast
   function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
@@ -96,17 +119,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 3500);
   }
 
-  // Send Command to n8n Webhook
+  // Dispara o comando para o Webhook do n8n
   async function sendN8nCommand(button, payload) {
-    if (!webhookUrl) {
-      showToast('Por favor, configure a URL do seu n8n no ícone de engrenagem.', 'error');
+    if (!isUrlValid(webhookUrl)) {
+      showToast('Defina a URL do seu webhook no arquivo config.js ou no ícone ⚙️', 'error');
       settingsModal.showModal();
       return;
     }
 
     triggerHaptic();
 
-    // Disable all action buttons to avoid concurrent spam
     button.classList.add('loading');
     actionButtons.forEach(btn => btn.disabled = true);
 
@@ -134,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Bind click handlers to action buttons
+  // Associa os cliques aos botões de ação
   actionButtons.forEach(button => {
     button.addEventListener('click', () => {
       const device = button.getAttribute('data-device');
@@ -143,13 +165,11 @@ document.addEventListener('DOMContentLoaded', () => {
       let payload = {};
 
       if (device) {
-        // Dispositivo: "portao" ou "quarto"
         payload = {
           dispositivo: device,
           action: action
         };
       } else {
-        // Ações diretas do Ar: "ar_ligar" ou "ar_desligar"
         payload = {
           action: action
         };
