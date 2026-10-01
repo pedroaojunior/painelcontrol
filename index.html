@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0f172a">
+  <title>Painel de Controle | Automação n8n</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-info">
+        <span class="status-badge" id="statusBadge">
+          <span class="status-dot"></span>
+          <span id="statusText">Pronto</span>
+        </span>
+        <h1>Painel de Controle</h1>
+      </div>
+      <button type="button" class="icon-button" id="openSettingsBtn" aria-label="Configurações do Webhook" title="Configurar Webhook n8n">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      </button>
+    </header>
+
+    <!-- Main Grid of Controls -->
+    <main class="controls-grid">
+
+      <!-- CARD 1: PORTÃO -->
+      <article class="card" id="cardPortao">
+        <div class="card-header">
+          <div class="card-icon icon-gate">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 21h18"/>
+              <path d="M3 10h18"/>
+              <path d="M5 21V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v17"/>
+              <path d="M13 21V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v17"/>
+            </svg>
+          </div>
+          <div class="card-title-wrap">
+            <h2>Portão</h2>
+            <span class="card-subtitle">Entrada Principal</span>
+          </div>
+        </div>
+
+        <div class="card-actions dual-actions">
+          <button type="button" class="btn btn-primary btn-gate" data-device="portao" data-action="abrir">
+            <span class="btn-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+              </svg>
+            </span>
+            <span class="btn-text">Abrir</span>
+            <span class="spinner" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="btn btn-secondary btn-gate" data-device="portao" data-action="fechar">
+            <span class="btn-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </span>
+            <span class="btn-text">Fechar</span>
+            <span class="spinner" aria-hidden="true"></span>
+          </button>
+        </div>
+      </article>
+
+      <!-- CARD 2: LUZ DO QUARTO -->
+      <article class="card" id="cardQuarto">
+        <div class="card-header">
+          <div class="card-icon icon-light">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/>
+              <path d="M9 18h6"/>
+              <path d="M10 22h4"/>
+            </svg>
+          </div>
+          <div class="card-title-wrap">
+            <h2>Luz do Quarto</h2>
+            <span class="card-subtitle">Iluminação</span>
+          </div>
+        </div>
+
+        <div class="card-actions dual-actions">
+          <button type="button" class="btn btn-power-on" data-device="quarto" data-action="ligar">
+            <span class="btn-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+                <line x1="12" y1="2" x2="12" y2="12"></line>
+              </svg>
+            </span>
+            <span class="btn-text">Ligar</span>
+            <span class="spinner" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="btn btn-power-off" data-device="quarto" data-action="desligar">
+            <span class="btn-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+                <line x1="12" y1="2" x2="12" y2="12"></line>
+              </svg>
+            </span>
+            <span class="btn-text">Desligar</span>
+            <span class="spinner" aria-hidden="true"></span>
+          </button>
+        </div>
+      </article>
+
+      <!-- CARD 3: AR CONDICIONADO -->
+      <article class="card" id="cardAr">
+        <div class="card-header">
+          <div class="card-icon icon-ac">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v20"></path>
+              <path d="M20 12H2"></path>
+              <path d="m4.93 4.93 14.14 14.14"></path>
+              <path d="m19.07 4.93-14.14 14.14"></path>
+            </svg>
+          </div>
+          <div class="card-title-wrap">
+            <h2>Ar Condicionado</h2>
+            <span class="card-subtitle">Tuya Smart</span>
+          </div>
+        </div>
+
+        <div class="card-actions dual-actions">
+          <button type="button" class="btn btn-ac-on" data-action="ar_ligar">
+            <span class="btn-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+                <line x1="12" y1="2" x2="12" y2="12"></line>
+              </svg>
+            </span>
+            <span class="btn-text">Ligar Ar</span>
+            <span class="spinner" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="btn btn-ac-off" data-action="ar_desligar">
+            <span class="btn-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+                <line x1="12" y1="2" x2="12" y2="12"></line>
+              </svg>
+            </span>
+            <span class="btn-text">Desligar Ar</span>
+            <span class="spinner" aria-hidden="true"></span>
+          </button>
+        </div>
+      </article>
+
+    </main>
+
+    <!-- Notification Toast Container -->
+    <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+    <!-- Modal Settings -->
+    <dialog id="settingsModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Configuração do Webhook</h3>
+          <button type="button" class="close-btn" id="closeSettingsBtn" aria-label="Fechar modal">&times;</button>
+        </div>
+        <form id="settingsForm">
+          <div class="form-group">
+            <label for="webhookUrlInput">URL do Webhook n8n:</label>
+            <input 
+              type="url" 
+              id="webhookUrlInput" 
+              placeholder="https://seu-n8n.com/webhook/controle-alexa" 
+              required
+              autocomplete="url"
+            >
+            <small class="form-help">Copie o link do node <strong>Webhook Jarvis</strong> (caminho: <code>controle-alexa</code>) do seu n8n.</small>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-outline" id="cancelSettingsBtn">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Salvar URL</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
