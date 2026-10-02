@@ -1,197 +1,743 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#0f172a">
-  <title>Painel de Controle | Automação n8n</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Smart Home AI Dashboard</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#ecfeff',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            glow: 'rgba(6, 182, 212, 0.4)'
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'radar': 'radarWave 2s linear infinite',
+                        'glow': 'glowPulse 2s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        radarWave: {
+                            '0%': { transform: 'scale(0.9)', opacity: '0.8' },
+                            '100%': { transform: 'scale(2.0)', opacity: '0' }
+                        },
+                        glowPulse: {
+                            '0%, 100%': { filter: 'drop-shadow(0 0 12px rgba(6, 182, 212, 0.6))' },
+                            '50%': { filter: 'drop-shadow(0 0 24px rgba(6, 182, 212, 0.9))' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background: radial-gradient(circle at top right, #1e1b4b 0%, #0f172a 45%, #020617 100%);
+            min-height: 100vh;
+            color: #f8fafc;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-card-active {
+            background: rgba(14, 116, 144, 0.25);
+            border: 1px solid rgba(34, 211, 238, 0.4);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+        }
+
+        .glass-modal {
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+    </style>
 </head>
-<body>
+<body class="p-3 md:p-6 pb-32 font-sans antialiased text-slate-100">
 
-  <div class="app-container">
-    <!-- Header -->
-    <header class="app-header">
-      <div class="header-info">
-        <span class="status-badge" id="statusBadge">
-          <span class="status-dot"></span>
-          <span id="statusText">Pronto</span>
+    <div class="max-w-md md:max-w-3xl mx-auto space-y-5">
+        
+        <!-- Header -->
+        <header class="glass-card rounded-2xl p-4 flex items-center justify-between relative overflow-hidden">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                    <i class="fa-solid fa-microchip text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-base font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+                        Automação Jarvis
+                    </h1>
+                    <div class="flex items-center space-x-2 text-xs text-slate-400">
+                        <span id="connection-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            <span class="w-1.5 h-1.5 mr-1 rounded-full bg-emerald-400 animate-pulse"></span> n8n Conectado
+                        </span>
+                        <span id="clock-display" class="font-mono text-slate-300">00:00:00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <button onclick="toggleLogsDrawer()" class="p-2.5 rounded-xl bg-slate-800/60 hover:bg-slate-700/60 border border-slate-700/50 text-slate-300 transition-all active:scale-95" title="Ver Logs">
+                    <i class="fa-solid fa-terminal text-sm"></i>
+                </button>
+                <button onclick="openSettingsModal()" class="p-2.5 rounded-xl bg-slate-800/60 hover:bg-slate-700/60 border border-slate-700/50 text-slate-300 transition-all active:scale-95" title="Configurações do Webhook">
+                    <i class="fa-solid fa-gear text-sm"></i>
+                </button>
+            </div>
+        </header>
+
+        <div id="voice-banner" class="glass-card rounded-2xl p-4 flex items-center justify-between border-cyan-500/40 hidden transition-all duration-300">
+            <div class="flex items-center space-x-3 min-w-0">
+                <div class="relative flex items-center justify-center">
+                    <div class="absolute w-8 h-8 rounded-full bg-cyan-500/30 animate-radar"></div>
+                    <i class="fa-solid fa-microphone text-cyan-400 text-lg relative z-10"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[10px] text-cyan-400 font-bold uppercase tracking-wider">Ouvindo comando de voz...</p>
+                    <p id="speech-transcript" class="text-sm font-medium text-slate-200 truncate italic">"Fale agora..."</p>
+                </div>
+            </div>
+            <button onclick="stopVoiceRecognition()" class="text-slate-400 hover:text-white text-xs px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700">Cancelar</button>
+        </div>
+
+        <div id="toast-bar" class="glass-card rounded-xl px-4 py-3 hidden border-cyan-500/40 flex items-center space-x-3 text-xs font-medium text-cyan-200 transition-all">
+            <i id="toast-icon" class="fa-solid fa-circle-info text-cyan-400"></i>
+            <span id="toast-text">Mensagem do sistema</span>
+        </div>
+
+        <section class="space-y-3">
+            <div class="flex items-center justify-between px-1">
+                <h2 class="text-xs uppercase tracking-wider font-bold text-slate-400">Dispositivos Ativos (n8n)</h2>
+                <span id="n8n-route-badge" class="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded-md border border-cyan-800/50">/webhook/controle-alexa</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                
+                <!-- 1. PORTÃO PRINCIPAL -->
+                <div id="card-portao" class="glass-card p-4 rounded-2xl flex flex-col justify-between space-y-4 transition-all duration-300">
+                    <div class="flex items-center justify-between">
+                        <div class="w-12 h-12 rounded-xl bg-slate-800 text-cyan-400 flex items-center justify-center border border-slate-700/60 shadow-inner">
+                            <i class="fa-solid fa-warehouse text-lg"></i>
+                        </div>
+                        <span id="status-portao" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                            Pronto
+                        </span>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white">Portão Principal</h3>
+                        <p class="text-xs text-slate-400 mb-3">Aciona o relé do portão via n8n</p>
+                        <button onclick="sendPortaoAction()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/20 active:scale-95 transition-all flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-key text-xs"></i>
+                            <span>Abrir / Acionar Portão</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. LUZ DO QUARTO -->
+                <div id="card-quarto" class="glass-card p-4 rounded-2xl flex flex-col justify-between space-y-4 transition-all duration-300">
+                    <div class="flex items-center justify-between">
+                        <div class="w-12 h-12 rounded-xl bg-slate-800 text-amber-400 flex items-center justify-center border border-slate-700/60 shadow-inner card-icon">
+                            <i class="fa-solid fa-lightbulb text-lg"></i>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="toggle-quarto" onchange="toggleQuarto(this.checked)" class="sr-only peer">
+                            <div class="w-12 h-6 bg-slate-700/80 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                        </label>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white">Luz do Quarto</h3>
+                        <p id="label-quarto" class="text-xs text-slate-400">Desligada</p>
+                    </div>
+                </div>
+
+                <!-- 3. AR CONDICIONADO -->
+                <div id="card-ar" class="glass-card p-4 rounded-2xl flex flex-col justify-between space-y-4 transition-all duration-300">
+                    <div class="flex items-center justify-between">
+                        <div class="w-12 h-12 rounded-xl bg-slate-800 text-cyan-400 flex items-center justify-center border border-slate-700/60 shadow-inner">
+                            <i class="fa-solid fa-snowflake text-lg"></i>
+                        </div>
+                        <span id="status-ar" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                            Desligado
+                        </span>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white">Ar Condicionado</h3>
+                        <p class="text-xs text-slate-400 mb-3">Comandos Tuya automatizados</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="sendArAction('ar_ligar')" class="py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-400 font-bold text-xs active:scale-95 transition-all flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-power-off text-xs"></i>
+                                <span>Ligar Ar</span>
+                            </button>
+                            <button onclick="sendArAction('ar_desligar')" class="py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-400 font-bold text-xs active:scale-95 transition-all flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-stop text-xs"></i>
+                                <span>Desligar</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="space-y-2">
+            <h2 class="text-xs uppercase tracking-wider font-bold text-slate-400 px-1">Atalhos de Rotina</h2>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="triggerRoutine('cheguei')" class="glass-card p-3 rounded-2xl flex items-center space-x-3 hover:border-cyan-500/40 active:scale-95 transition-all text-left">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20 shrink-0">
+                        <i class="fa-solid fa-house-user text-base"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-white">Modo Cheguei</p>
+                        <p class="text-[10px] text-slate-400">Liga Luz Quarto e Ar</p>
+                    </div>
+                </button>
+
+                <button onclick="triggerRoutine('sai')" class="glass-card p-3 rounded-2xl flex items-center space-x-3 hover:border-cyan-500/40 active:scale-95 transition-all text-left">
+                    <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center border border-rose-500/20 shrink-0">
+                        <i class="fa-solid fa-person-walking-arrow-right text-base"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-white">Modo Saí</p>
+                        <p class="text-[10px] text-slate-400">Desliga Ar e Quarto</p>
+                    </div>
+                </button>
+            </div>
+        </section>
+
+        <section id="logs-drawer" class="glass-card rounded-2xl p-4 hidden space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-700/50 pb-2">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-terminal text-cyan-400 text-xs"></i>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">Console HTTP & n8n Payload Logs</h3>
+                </div>
+                <button onclick="clearLogs()" class="text-[11px] text-slate-400 hover:text-rose-400 transition-colors">Limpar</button>
+            </div>
+            <div id="logs-container" class="space-y-1.5 max-h-44 overflow-y-auto font-mono text-xs text-slate-300 pr-1">
+                <div class="text-slate-500 italic text-[11px]">Nenhuma requisição enviada ainda.</div>
+            </div>
+        </section>
+
+    </div>
+
+    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center">
+        <div id="mic-ring" class="absolute w-20 h-20 rounded-full bg-cyan-500/30 hidden animate-radar pointer-events-none"></div>
+        
+        <button id="btn-mic" onclick="toggleVoiceRecognition()" class="relative z-10 w-16 h-16 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 text-white flex items-center justify-center shadow-2xl shadow-cyan-500/50 border-2 border-cyan-300/30 active:scale-90 transition-all duration-200">
+            <i id="mic-icon" class="fa-solid fa-microphone text-2xl"></i>
+        </button>
+        <span class="text-[10px] uppercase font-bold tracking-widest text-slate-300 mt-2 bg-slate-900/90 px-3 py-0.5 rounded-full border border-slate-700 shadow-md">
+            Comando de Voz
         </span>
-        <h1>Painel de Controle</h1>
-      </div>
-      <button type="button" class="icon-button" id="openSettingsBtn" aria-label="Configurações do Webhook" title="Configurar Webhook n8n">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-          <circle cx="12" cy="12" r="3"/>
-        </svg>
-      </button>
-    </header>
+    </div>
 
-    <!-- Main Grid of Controls -->
-    <main class="controls-grid">
+    <div id="settings-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm hidden">
+        <div class="glass-modal w-full max-w-md rounded-3xl p-6 space-y-5 border border-slate-700/80 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
+                        <i class="fa-solid fa-sliders"></i>
+                    </div>
+                    <h2 class="text-base font-bold text-white">Configurar Servidor n8n</h2>
+                </div>
+                <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
 
-      <!-- CARD 1: PORTÃO -->
-      <article class="card" id="cardPortao">
-        <div class="card-header">
-          <div class="card-icon icon-gate">
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 21h18"/>
-              <path d="M3 10h18"/>
-              <path d="M5 21V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v17"/>
-              <path d="M13 21V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v17"/>
-            </svg>
-          </div>
-          <div class="card-title-wrap">
-            <h2>Portão</h2>
-            <span class="card-subtitle">Entrada Principal</span>
-          </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">URL Completa do Webhook n8n</label>
+                    <input type="url" id="n8n-url-input" placeholder="http://192.168.1.100:5678/webhook/controle-alexa" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
+                    <p class="text-[11px] text-slate-400 mt-1">Sua rota do nó Webhook Jarvis: <code class="text-cyan-400">controle-alexa</code></p>
+                </div>
+
+                <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+                    <div>
+                        <p class="text-xs font-medium text-white">Resposta Falada (TTS)</p>
+                        <p class="text-[11px] text-slate-400">O app confirmará ações por voz</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="toggle-tts" class="sr-only peer" checked>
+                        <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500"></div>
+                    </label>
+                </div>
+
+                <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+                    <div>
+                        <p class="text-xs font-medium text-white">Modo Simulação (Offline)</p>
+                        <p class="text-[11px] text-slate-400">Testa comandos sem disparar rede</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="toggle-simulation" class="sr-only peer">
+                        <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500"></div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="pt-2 flex space-x-3">
+                <button onclick="testWebhookConnection()" class="w-1/2 py-2.5 rounded-xl border border-cyan-500/40 text-cyan-400 text-xs font-bold hover:bg-cyan-500/10 transition-colors">
+                    Testar Conexão
+                </button>
+                <button onclick="saveSettings()" class="w-1/2 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs shadow-lg shadow-cyan-500/30 transition-all">
+                    Salvar
+                </button>
+            </div>
         </div>
+    </div>
 
-        <div class="card-actions dual-actions">
-          <button type="button" class="btn btn-primary btn-gate" data-device="portao" data-action="abrir">
-            <span class="btn-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
-              </svg>
-            </span>
-            <span class="btn-text">Abrir</span>
-            <span class="spinner" aria-hidden="true"></span>
-          </button>
+    <script>
+        // System configuration state
+        const CONFIG = {
+            n8nUrl: localStorage.getItem('n8n_url') || 'http://192.168.1.100:5678/webhook/controle-alexa',
+            ttsEnabled: localStorage.getItem('tts_enabled') !== 'false',
+            simulationMode: localStorage.getItem('simulation_mode') === 'true'
+        };
 
-          <button type="button" class="btn btn-secondary btn-gate" data-device="portao" data-action="fechar">
-            <span class="btn-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-              </svg>
-            </span>
-            <span class="btn-text">Fechar</span>
-            <span class="spinner" aria-hidden="true"></span>
-          </button>
-        </div>
-      </article>
+        let recognition = null;
+        let isListening = false;
 
-      <!-- CARD 2: LUZ DO QUARTO -->
-      <article class="card" id="cardQuarto">
-        <div class="card-header">
-          <div class="card-icon icon-light">
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/>
-              <path d="M9 18h6"/>
-              <path d="M10 22h4"/>
-            </svg>
-          </div>
-          <div class="card-title-wrap">
-            <h2>Luz do Quarto</h2>
-            <span class="card-subtitle">Iluminação</span>
-          </div>
-        </div>
+        document.addEventListener('DOMContentLoaded', () => {
+            initClock();
+            initSpeechRecognition();
+            loadSettingsToUI();
+            addLog('App iniciado e pronto para o n8n.', 'info');
+        });
 
-        <div class="card-actions dual-actions">
-          <button type="button" class="btn btn-power-on" data-device="quarto" data-action="ligar">
-            <span class="btn-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
-                <line x1="12" y1="2" x2="12" y2="12"></line>
-              </svg>
-            </span>
-            <span class="btn-text">Ligar</span>
-            <span class="spinner" aria-hidden="true"></span>
-          </button>
+        function initClock() {
+            const updateClock = () => {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('pt-BR');
+                document.getElementById('clock-display').innerText = timeStr;
+            };
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
 
-          <button type="button" class="btn btn-power-off" data-device="quarto" data-action="desligar">
-            <span class="btn-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
-                <line x1="12" y1="2" x2="12" y2="12"></line>
-              </svg>
-            </span>
-            <span class="btn-text">Desligar</span>
-            <span class="spinner" aria-hidden="true"></span>
-          </button>
-        </div>
-      </article>
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toast-bar');
+            const toastText = document.getElementById('toast-text');
+            const toastIcon = document.getElementById('toast-icon');
 
-      <!-- CARD 3: AR CONDICIONADO -->
-      <article class="card" id="cardAr">
-        <div class="card-header">
-          <div class="card-icon icon-ac">
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 2v20"></path>
-              <path d="M20 12H2"></path>
-              <path d="m4.93 4.93 14.14 14.14"></path>
-              <path d="m19.07 4.93-14.14 14.14"></path>
-            </svg>
-          </div>
-          <div class="card-title-wrap">
-            <h2>Ar Condicionado</h2>
-            <span class="card-subtitle">Tuya Smart</span>
-          </div>
-        </div>
+            toastText.innerText = msg;
+            
+            if (type === 'success') {
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400";
+            } else if (type === 'error') {
+                toastIcon.className = "fa-solid fa-triangle-exclamation text-rose-400";
+            } else {
+                toastIcon.className = "fa-solid fa-circle-info text-cyan-400";
+            }
 
-        <div class="card-actions dual-actions">
-          <button type="button" class="btn btn-ac-on" data-action="ar_ligar">
-            <span class="btn-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
-                <line x1="12" y1="2" x2="12" y2="12"></line>
-              </svg>
-            </span>
-            <span class="btn-text">Ligar Ar</span>
-            <span class="spinner" aria-hidden="true"></span>
-          </button>
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3500);
+        }
 
-          <button type="button" class="btn btn-ac-off" data-action="ar_desligar">
-            <span class="btn-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
-                <line x1="12" y1="2" x2="12" y2="12"></line>
-              </svg>
-            </span>
-            <span class="btn-text">Desligar Ar</span>
-            <span class="spinner" aria-hidden="true"></span>
-          </button>
-        </div>
-      </article>
+        // 1. ACTION: PORTÃO PRINCIPAL (n8n payload: { dispositivo: "portao", action: "on" })
+        function sendPortaoAction() {
+            const statusBadge = document.getElementById('status-portao');
+            statusBadge.innerText = "Enviando...";
+            statusBadge.className = "text-xs font-semibold px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 animate-pulse";
 
-    </main>
+            const payload = {
+                dispositivo: "portao",
+                action: "on"
+            };
 
-    <!-- Notification Toast Container -->
-    <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+            showToast("Acionando o portão principal...");
+            speakResponse("Acionando o portão principal");
 
-    <!-- Modal Settings -->
-    <dialog id="settingsModal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>Configuração do Webhook</h3>
-          <button type="button" class="close-btn" id="closeSettingsBtn" aria-label="Fechar modal">&times;</button>
-        </div>
-        <form id="settingsForm">
-          <div class="form-group">
-            <label for="webhookUrlInput">URL do Webhook n8n:</label>
-            <input 
-              type="url" 
-              id="webhookUrlInput" 
-              placeholder="https://seu-n8n.com/webhook/controle-alexa" 
-              required
-              autocomplete="url"
-            >
-            <small class="form-help">Copie o link do node <strong>Webhook Jarvis</strong> (caminho: <code>controle-alexa</code>) do seu n8n.</small>
-          </div>
-          <div class="modal-actions">
-            <button type="button" class="btn btn-outline" id="cancelSettingsBtn">Cancelar</button>
-            <button type="submit" class="btn btn-primary">Salvar URL</button>
-          </div>
-        </form>
-      </div>
-    </dialog>
-  </div>
+            sendN8nPayload(payload, () => {
+                statusBadge.innerText = "Acionado";
+                statusBadge.className = "text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40";
+                setTimeout(() => {
+                    statusBadge.innerText = "Pronto";
+                    statusBadge.className = "text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700";
+                }, 4000);
+            });
+        }
 
-  <script src="config.js"></script>
-  <script src="script.js"></script>
+        // 2. ACTION: LUZ DO QUARTO (n8n payload: { dispositivo: "quarto", action: "on" / "off" })
+        function toggleQuarto(isTurnedOn, triggeredByVoice = false) {
+            const card = document.getElementById('card-quarto');
+            const label = document.getElementById('label-quarto');
+
+            if (isTurnedOn) {
+                card.classList.add('glass-card-active');
+                label.innerText = "Ligada";
+                label.className = "text-xs text-amber-400 font-semibold";
+            } else {
+                card.classList.remove('glass-card-active');
+                label.innerText = "Desligada";
+                label.className = "text-xs text-slate-400";
+            }
+
+            const payload = {
+                dispositivo: "quarto",
+                action: isTurnedOn ? "on" : "off"
+            };
+
+            if (!triggeredByVoice) {
+                const msg = isTurnedOn ? "Luz do quarto ligada" : "Luz do quarto desligada";
+                showToast(msg);
+                speakResponse(msg);
+            }
+
+            sendN8nPayload(payload);
+        }
+
+        // 3. ACTION: AR CONDICIONADO (n8n payload: { action: "ar_ligar" } ou { action: "ar_desligar" })
+        function sendArAction(actionName, triggeredByVoice = false) {
+            const card = document.getElementById('card-ar');
+            const statusBadge = document.getElementById('status-ar');
+
+            const payload = {
+                action: actionName
+            };
+
+            if (actionName === 'ar_ligar') {
+                card.classList.add('glass-card-active');
+                statusBadge.innerText = "Ligado";
+                statusBadge.className = "text-xs font-semibold px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/40";
+                
+                if (!triggeredByVoice) {
+                    showToast("Ligando o ar condicionado");
+                    speakResponse("Ligando o ar condicionado");
+                }
+            } else {
+                card.classList.remove('glass-card-active');
+                statusBadge.innerText = "Desligado";
+                statusBadge.className = "text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700";
+                
+                if (!triggeredByVoice) {
+                    showToast("Desligando o ar condicionado");
+                    speakResponse("Desligando o ar condicionado");
+                }
+            }
+
+            sendN8nPayload(payload);
+        }
+
+        // Quick Routine triggers
+        function triggerRoutine(routineType) {
+            if (routineType === 'cheguei') {
+                showToast("Executando rotina Cheguei");
+                speakResponse("Bem vindo de volta. Ligando quarto e ar condicionado.");
+                
+                document.getElementById('toggle-quarto').checked = true;
+                toggleQuarto(true, true);
+                sendArAction('ar_ligar', true);
+            } else if (routineType === 'sai') {
+                showToast("Executando rotina Saí");
+                speakResponse("Desligando os aparelhos e saindo.");
+                
+                document.getElementById('toggle-quarto').checked = false;
+                toggleQuarto(false, true);
+                sendArAction('ar_desligar', true);
+            }
+        }
+
+        async function sendN8nPayload(payload, callbackSuccess = null) {
+            addLog(`[ENVIANDO] POST -> ${JSON.stringify(payload)}`, 'info');
+
+            if (CONFIG.simulationMode) {
+                setTimeout(() => {
+                    addLog(`[SIMULAÇÃO OK] Payload aceito.`, 'sim');
+                    if (callbackSuccess) callbackSuccess();
+                }, 400);
+                return;
+            }
+
+            try {
+                const response = await fetch(CONFIG.n8nUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    addLog(`[SUCESSO ${response.status}] Resposta do n8n confirmada.`, 'success');
+                    if (callbackSuccess) callbackSuccess();
+                } else {
+                    addLog(`[ERRO HTTP ${response.status}] n8n rejeitou a requisição.`, 'warn');
+                    showToast(`Aviso: n8n retornou código ${response.status}`, 'error');
+                }
+            } catch (err) {
+                addLog(`[FALHA REDE] Não foi possível conectar ao n8n: ${err.message}`, 'error');
+                showToast("Erro ao conectar no n8n. Verifique o IP ou CORS.", "error");
+            }
+        }
+
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                addLog('Navegador/WebView sem suporte nativo a Web Speech API.', 'warn');
+                return;
+            }
+
+            recognition = new SpeechRecognition();
+            recognition.lang = 'pt-BR';
+            recognition.continuous = false;
+            recognition.interimResults = true;
+
+            recognition.onstart = () => {
+                isListening = true;
+                updateMicUI(true);
+                document.getElementById('voice-banner').classList.remove('hidden');
+                document.getElementById('speech-transcript').innerText = "Ouvindo...";
+            };
+
+            recognition.onresult = (event) => {
+                let transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                
+                document.getElementById('speech-transcript').innerText = `"${transcript}"`;
+
+                if (event.results[0].isFinal) {
+                    processVoiceCommand(transcript.toLowerCase().trim());
+                }
+            };
+
+            recognition.onerror = (event) => {
+                addLog(`Erro voz: ${event.error}`, 'error');
+                stopVoiceRecognition();
+            };
+
+            recognition.onend = () => {
+                stopVoiceRecognition();
+            };
+        }
+
+        function toggleVoiceRecognition() {
+            if (!recognition) {
+                showToast("Recurso de voz não disponível neste navegador.", "error");
+                return;
+            }
+
+            if (isListening) {
+                recognition.stop();
+            } else {
+                try {
+                    recognition.start();
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        }
+
+        function stopVoiceRecognition() {
+            isListening = false;
+            updateMicUI(false);
+            setTimeout(() => {
+                document.getElementById('voice-banner').classList.add('hidden');
+            }, 1000);
+        }
+
+        function updateMicUI(active) {
+            const micBtn = document.getElementById('btn-mic');
+            const micRing = document.getElementById('mic-ring');
+            const micIcon = document.getElementById('mic-icon');
+
+            if (active) {
+                micBtn.classList.remove('from-cyan-500', 'to-blue-600');
+                micBtn.classList.add('from-rose-500', 'to-red-600', 'scale-110');
+                micRing.classList.remove('hidden');
+                micIcon.className = "fa-solid fa-waveform text-2xl";
+            } else {
+                micBtn.classList.remove('from-rose-500', 'to-red-600', 'scale-110');
+                micBtn.classList.add('from-cyan-500', 'to-blue-600');
+                micRing.classList.add('hidden');
+                micIcon.className = "fa-solid fa-microphone text-2xl";
+            }
+        }
+
+        function processVoiceCommand(cmd) {
+            addLog(`Comando Reconhecido: "${cmd}"`, 'voice');
+
+            // PORTÃO MATCHING
+            if (cmd.includes('portao') || cmd.includes('portão') || cmd.includes('abrir portao') || cmd.includes('abrir o portão')) {
+                sendPortaoAction();
+            }
+            // LUZ QUARTO MATCHING (ON)
+            else if (cmd.includes('ligar quarto') || cmd.includes('ligar a luz do quarto') || cmd.includes('acender quarto') || cmd.includes('acender a luz do quarto')) {
+                document.getElementById('toggle-quarto').checked = true;
+                toggleQuarto(true, true);
+                speakResponse("Ligando a luz do quarto.");
+            }
+            // LUZ QUARTO MATCHING (OFF)
+            else if (cmd.includes('desligar quarto') || cmd.includes('desligar a luz do quarto') || cmd.includes('apagar quarto') || cmd.includes('apagar a luz do quarto')) {
+                document.getElementById('toggle-quarto').checked = false;
+                toggleQuarto(false, true);
+                speakResponse("Desligando a luz do quarto.");
+            }
+            // AR CONDICIONADO MATCHING (LIGAR)
+            else if (cmd.includes('ligar ar') || cmd.includes('ligar o ar') || cmd.includes('liga o ar') || cmd.includes('ligar ar condicionado')) {
+                sendArAction('ar_ligar', true);
+                speakResponse("Ligando o ar condicionado.");
+            }
+            // AR CONDICIONADO MATCHING (DESLIGAR)
+            else if (cmd.includes('desligar ar') || cmd.includes('desligar o ar') || cmd.includes('desliga o ar') || cmd.includes('desligar ar condicionado')) {
+                sendArAction('ar_desligar', true);
+                speakResponse("Desligando o ar condicionado.");
+            }
+            // UNMATCHED
+            else {
+                speakResponse("Não encontrei um comando correspondente.");
+                showToast("Comando não reconhecido.", "error");
+            }
+        }
+
+        function speakResponse(text) {
+            if (!CONFIG.ttsEnabled) return;
+            
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'pt-BR';
+                utterance.rate = 1.0;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function addLog(msg, type = 'info') {
+            const container = document.getElementById('logs-container');
+            if (!container) return;
+
+            if (container.children.length === 1 && container.children[0].classList.contains('italic')) {
+                container.innerHTML = '';
+            }
+
+            const entry = document.createElement('div');
+            const time = new Date().toLocaleTimeString('pt-BR');
+            
+            let color = 'text-slate-300';
+            let icon = 'fa-info-circle';
+
+            if (type === 'voice') { color = 'text-cyan-400'; icon = 'fa-microphone'; }
+            if (type === 'success') { color = 'text-emerald-400'; icon = 'fa-check-circle'; }
+            if (type === 'error') { color = 'text-rose-400'; icon = 'fa-circle-xmark'; }
+            if (type === 'warn') { color = 'text-amber-400'; icon = 'fa-triangle-exclamation'; }
+            if (type === 'sim') { color = 'text-purple-400'; icon = 'fa-flask'; }
+
+            entry.className = `flex items-start space-x-1.5 ${color}`;
+            entry.innerHTML = `
+                <span class="text-[10px] opacity-60 text-slate-400">[${time}]</span>
+                <i class="fa-solid ${icon} text-[10px] mt-1"></i>
+                <span class="flex-1 break-all">${msg}</span>
+            `;
+
+            container.prepend(entry);
+        }
+
+        function clearLogs() {
+            document.getElementById('logs-container').innerHTML = '<div class="text-slate-500 italic text-[11px]">Console limpo.</div>';
+        }
+
+        function toggleLogsDrawer() {
+            document.getElementById('logs-drawer').classList.toggle('hidden');
+        }
+
+        function openSettingsModal() {
+            document.getElementById('settings-modal').classList.remove('hidden');
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settings-modal').classList.add('hidden');
+        }
+
+        function loadSettingsToUI() {
+            document.getElementById('n8n-url-input').value = CONFIG.n8nUrl;
+            document.getElementById('toggle-tts').checked = CONFIG.ttsEnabled;
+            document.getElementById('toggle-simulation').checked = CONFIG.simulationMode;
+        }
+
+        function saveSettings() {
+            const urlVal = document.getElementById('n8n-url-input').value.trim();
+            const ttsVal = document.getElementById('toggle-tts').checked;
+            const simVal = document.getElementById('toggle-simulation').checked;
+
+            if (urlVal) {
+                CONFIG.n8nUrl = urlVal;
+                localStorage.setItem('n8n_url', urlVal);
+            }
+            
+            CONFIG.ttsEnabled = ttsVal;
+            localStorage.setItem('tts_enabled', ttsVal);
+
+            CONFIG.simulationMode = simVal;
+            localStorage.setItem('simulation_mode', simVal);
+
+            closeSettingsModal();
+            showToast("Configurações salvas!", "success");
+            addLog('Configurações salvas com sucesso.', 'success');
+        }
+
+        async function testWebhookConnection() {
+            const targetUrl = document.getElementById('n8n-url-input').value.trim();
+            if (!targetUrl) {
+                showToast("Insira uma URL de Webhook válida", "error");
+                return;
+            }
+
+            try {
+                addLog(`[TESTE] Enviando ping para ${targetUrl}`, 'info');
+                const res = await fetch(targetUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ test: "ping", source: "dashboard_app" })
+                });
+
+                if (res.ok) {
+                    showToast("Sucesso! n8n respondeu com código 200.", "success");
+                    addLog("[TESTE OK] O webhook do n8n está ativo e operando.", "success");
+                } else {
+                    showToast(`Servidor respondeu com erro ${res.status}`, "error");
+                    addLog(`[TESTE AVISO] Código retornado: ${res.status}`, "warn");
+                }
+            } catch (err) {
+                showToast("Erro ao alcançar n8n: " + err.message, "error");
+                addLog("[TESTE ERRO] " + err.message, "error");
+            }
+        }
+    </script>
 </body>
 </html>
